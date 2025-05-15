@@ -95,7 +95,7 @@ const LandingPage = () => {
           </div>
           <div className="lg:w-1/2 relative h-[400px]">
             <Image
-              src="/images/campus.png"
+              src="/images/Landing.jpg"
               alt="Students riding bikes on campus"
               fill
               className="rounded-xl shadow-2xl object-cover"
