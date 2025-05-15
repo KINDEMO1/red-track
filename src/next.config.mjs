@@ -1,27 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  images: {
+    domains: ['localhost', 'xsgames.co', 'picsum.photos', 'images.unsplash.com'],
+  },
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
+    // Disable ESLint during build to prevent build failures
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
+    // Disable TypeScript checking during build to prevent build failures
     ignoreBuildErrors: true,
   },
-  images: {
-    domains: ['localhost', 'xsgames.co', 'picsum.photos', 'images.unsplash.com'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
-  },
-}
+};
 
 export default nextConfig;
