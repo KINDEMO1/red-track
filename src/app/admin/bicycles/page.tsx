@@ -240,65 +240,100 @@ export default function AdminBicyclesPage() {
     try {
       if (currentBicycle) {
         // Update existing bicycle using our API
-        const response = await fetch("/api/bicycles", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: currentBicycle.id,
-            name: formData.name,
-            type: formData.type,
-            location: formData.location,
-            is_available: formData.is_available,
-            image_url: formData.image_url || null,
-            last_maintenance: formData.last_maintenance || null,
-            next_maintenance: formData.next_maintenance || null,
-            notes: formData.notes || null,
-          }),
-        })
+        try {
+          const response = await fetch("/api/bicycles", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: currentBicycle.id,
+              name: formData.name,
+              type: formData.type,
+              location: formData.location,
+              is_available: formData.is_available,
+              image_url: formData.image_url || null,
+              last_maintenance: formData.last_maintenance || null,
+              next_maintenance: formData.next_maintenance || null,
+              notes: formData.notes || null,
+            }),
+          })
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to update bicycle")
+          // Check if the response is OK before trying to parse JSON
+          if (!response.ok) {
+            // Try to get error message from JSON response
+            let errorMessage = `Failed to update bicycle: ${response.status} ${response.statusText}`
+            try {
+              const errorData = await response.json()
+              if (errorData.error) {
+                errorMessage = errorData.error
+              }
+            } catch (jsonError) {
+              // If response isn't JSON, try to get text content
+              const errorText = await response.text()
+              console.error("Non-JSON error response:", errorText)
+              errorMessage = `Server error: ${response.status}`
+            }
+
+            throw new Error(errorMessage)
+          }
+
+          const updatedBicycle = await response.json()
+          setBicycles(bicycles.map((bike) => (bike.id === currentBicycle.id ? updatedBicycle : bike)))
+          toast.success("Bicycle updated successfully")
+          setShowModal(false)
+        } catch (err) {
+          console.error("Error updating bicycle:", err)
+          toast.error(`Error updating bicycle: ${err instanceof Error ? err.message : "Unknown error"}`)
         }
-
-        const updatedBicycle = await response.json()
-
-        setBicycles(bicycles.map((bike) => (bike.id === currentBicycle.id ? updatedBicycle : bike)))
-
-        toast.success("Bicycle updated successfully")
       } else {
         // Add new bicycle using our API
-        const response = await fetch("/api/bicycles", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formData.name,
-            type: formData.type,
-            location: formData.location,
-            is_available: formData.is_available,
-            image_url: formData.image_url || null,
-            last_maintenance: formData.last_maintenance || null,
-            next_maintenance: formData.next_maintenance || null,
-            notes: formData.notes || null,
-          }),
-        })
+        try {
+          const response = await fetch("/api/bicycles", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              type: formData.type,
+              location: formData.location,
+              is_available: formData.is_available,
+              image_url: formData.image_url || null,
+              last_maintenance: formData.last_maintenance || null,
+              next_maintenance: formData.next_maintenance || null,
+              notes: formData.notes || null,
+            }),
+          })
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to add bicycle")
+          // Check if the response is OK before trying to parse JSON
+          if (!response.ok) {
+            // Try to get error message from JSON response
+            let errorMessage = `Failed to add bicycle: ${response.status} ${response.statusText}`
+            try {
+              const errorData = await response.json()
+              if (errorData.error) {
+                errorMessage = errorData.error
+              }
+            } catch (jsonError) {
+              // If response isn't JSON, try to get text content
+              const errorText = await response.text()
+              console.error("Non-JSON error response:", errorText)
+              errorMessage = `Server error: ${response.status}`
+            }
+
+            throw new Error(errorMessage)
+          }
+
+          const newBicycle = await response.json()
+          setBicycles([...bicycles, newBicycle])
+          toast.success("Bicycle added successfully")
+          setShowModal(false)
+        } catch (err) {
+          console.error("Error saving bicycle:", err)
+          toast.error(`Error saving bicycle: ${err instanceof Error ? err.message : "Unknown error"}`)
         }
-
-        const newBicycle = await response.json()
-
-        setBicycles([...bicycles, newBicycle])
-        toast.success("Bicycle added successfully")
       }
-
-      setShowModal(false)
     } catch (err: any) {
       console.error("Error saving bicycle:", err)
       toast.error(`Error saving bicycle: ${err.message}`)

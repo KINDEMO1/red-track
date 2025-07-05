@@ -76,22 +76,34 @@ export default function BicyclesPage() {
 
         setUser(userData.user)
 
-        // Check user status
-        const { data: userProfile, error: profileError } = await supabase
-          .from("users")
-          .select("status")
-          .eq("id", userData.user.id)
-          .single()
+        // Check user status - with better error handling
+        try {
+          const { data: userProfile, error: profileError } = await supabase
+            .from("users")
+            .select("status")
+            .eq("id", userData.user.id)
+            .maybeSingle() // Use maybeSingle() instead of single() to handle case where user doesn't exist
 
-        if (profileError) {
-          logSupabaseError("Profile error", profileError)
-          // Don't return here, we can still show bicycles even if we can't get the user status
-        }
+          if (profileError) {
+            console.error("Profile error details:", profileError)
+            logSupabaseError("Profile error", profileError)
+            // Only set error if it's a real database error, not a "no rows" error
+            if (profileError.code !== "PGRST116") {
+              setError("Failed to load user profile. Please try again.")
+              setIsLoading(false)
+              return
+            }
+          }
 
-        if (userProfile?.status === "suspended") {
-          setError("Your account is suspended. Please upload a new medical certificate.")
-          setIsLoading(false)
-          return
+          // If user doesn't exist in users table, that's okay - they might be a new user
+          if (userProfile?.status === "suspended") {
+            setError("Your account is suspended. Please upload a new medical certificate.")
+            setIsLoading(false)
+            return
+          }
+        } catch (profileFetchError) {
+          console.error("Profile fetch error:", profileFetchError)
+          // Continue execution - don't block the app if we can't get user status
         }
 
         // Check if user has an approved medical certificate

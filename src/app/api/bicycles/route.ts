@@ -39,8 +39,23 @@ export async function POST(request: Request) {
     }
 
     // Get the bicycle data from the request
-    const bicycleData = await request.json()
-    console.log("Received bicycle data:", bicycleData)
+    let bicycleData
+    try {
+      bicycleData = await request.json()
+      console.log("Received bicycle data:", bicycleData)
+    } catch (parseError) {
+      console.error("Error parsing request body:", parseError)
+      return NextResponse.json({ error: "Invalid request body: Could not parse JSON" }, { status: 400 })
+    }
+
+    if (!bicycleData || typeof bicycleData !== "object") {
+      return NextResponse.json({ error: "Invalid bicycle data provided" }, { status: 400 })
+    }
+
+    // Validate the bicycle data
+    if (!bicycleData.name || !bicycleData.type || !bicycleData.location) {
+      return NextResponse.json({ error: "Name, type, and location are required fields" }, { status: 400 })
+    }
 
     // Insert the bicycle
     const { data, error } = await supabase.from("bicycles").insert([bicycleData]).select()
@@ -88,8 +103,18 @@ export async function PUT(request: Request) {
     }
 
     // Get the bicycle data from the request
-    const bicycleData = await request.json()
-    console.log("Received bicycle update data:", bicycleData)
+    let bicycleData
+    try {
+      bicycleData = await request.json()
+      console.log("Received bicycle update data:", bicycleData)
+    } catch (parseError) {
+      console.error("Error parsing request body:", parseError)
+      return NextResponse.json({ error: "Invalid request body: Could not parse JSON" }, { status: 400 })
+    }
+
+    if (!bicycleData || typeof bicycleData !== "object") {
+      return NextResponse.json({ error: "Invalid bicycle data provided" }, { status: 400 })
+    }
 
     const { id, ...updateData } = bicycleData
 
